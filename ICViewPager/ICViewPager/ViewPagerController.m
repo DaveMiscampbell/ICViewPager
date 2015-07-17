@@ -91,7 +91,7 @@
     bezierPath = [UIBezierPath bezierPath];
     [bezierPath moveToPoint:CGPointMake(0.0, 0.0)];
     [bezierPath addLineToPoint:CGPointMake(CGRectGetWidth(rect), 0.0)];
-    [topLineColor setStroke];
+    [self.topLineColor setStroke];
     [bezierPath setLineWidth:1.0];
     [bezierPath stroke];
     
@@ -99,7 +99,7 @@
     bezierPath = [UIBezierPath bezierPath];
     [bezierPath moveToPoint:CGPointMake(0.0, CGRectGetHeight(rect))];
     [bezierPath addLineToPoint:CGPointMake(CGRectGetWidth(rect), CGRectGetHeight(rect))];
-    [bottomLineColor setStroke];
+    [self.bottomLineColor setStroke];
     [bezierPath setLineWidth:1.0];
     [bezierPath stroke];
     
@@ -754,9 +754,10 @@
     
     if(![self.topLineColor isEqualToColor:topLineColor]) {
         
-        self.tabView.topLineColor = topLineColor;
-        
-        [self.tabView drawRect];
+        for (TabView* tabView in self.tabs) {
+            tabView.topLineColor = topLineColor;
+            [tabView setNeedsDisplay];
+        }
         
         self.topLineColor = topLineColor;
     }    
@@ -765,9 +766,11 @@
     
     if(![self.bottomLineColor isEqualToColor:bottomLineColor]) {
         
-        self.tabView.bottomLineColor = bottomLineColor;
-        
-        [self.tabView drawRect];
+        for(TabView* tabView in self.tabs) {
+            tabView.bottomLineColor = bottomLineColor;
+            
+            [tabView setNeedsDisplay];
+        }
         
         self.bottomLineColor = bottomLineColor;
     }
@@ -803,7 +806,7 @@
             return [self contentViewBackgroundColor];
         case ViewPagerTopLine:
             return [self topLineColor];
-        case ViewPageBottomLine:
+        case ViewPagerBottomLine:
             return [self bottomLineColor];
         default:
             return [UIColor clearColor];
@@ -894,6 +897,9 @@
         frame.origin.x = contentSizeWidth;
         frame.size.width = [self.tabWidth floatValue];
         tabView.frame = frame;
+        
+        ((TabView *) tabView).topLineColor = self.topLineColor;
+        ((TabView *) tabView).bottomLineColor = self.bottomLineColor;
         
         [self.tabsView addSubview:tabView];
         

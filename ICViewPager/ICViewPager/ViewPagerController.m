@@ -25,6 +25,8 @@
 #define kIndicatorColor [UIColor colorWithRed:178.0/255.0 green:203.0/255.0 blue:57.0/255.0 alpha:0.75]
 #define kTabsViewBackgroundColor [UIColor colorWithRed:234.0/255.0 green:234.0/255.0 blue:234.0/255.0 alpha:0.75]
 #define kContentViewBackgroundColor [UIColor colorWithRed:248.0/255.0 green:248.0/255.0 blue:248.0/255.0 alpha:0.75]
+#define kTopLineColor [UIColor colorWithWhite:197.0/255.0 alpha:0.75]
+#define kBottomLineColor [UIColor colorWithWhite:197.0/255.0 alpha:0.75]
 
 #pragma mark - UIColor+Equality
 @interface UIColor (Equality)
@@ -62,6 +64,8 @@
 @interface TabView : UIView
 @property (nonatomic, getter = isSelected) BOOL selected;
 @property (nonatomic) UIColor *indicatorColor;
+@property (nonatomic) UIColor *topLineColor;
+@property (nonatomic) UIColor *bottomLineColor;
 @end
 
 @implementation TabView
@@ -69,6 +73,8 @@
     self = [super initWithFrame:frame];
     if (self) {
         self.backgroundColor = [UIColor clearColor];
+        self.topLineColor = kTopLineColor;
+        self.bottomLineColor = kBottomLineColor;
     }
     return self;
 }
@@ -85,7 +91,7 @@
     bezierPath = [UIBezierPath bezierPath];
     [bezierPath moveToPoint:CGPointMake(0.0, 0.0)];
     [bezierPath addLineToPoint:CGPointMake(CGRectGetWidth(rect), 0.0)];
-    [[UIColor colorWithWhite:197.0/255.0 alpha:0.75] setStroke];
+    [topLineColor setStroke];
     [bezierPath setLineWidth:1.0];
     [bezierPath stroke];
     
@@ -93,7 +99,7 @@
     bezierPath = [UIBezierPath bezierPath];
     [bezierPath moveToPoint:CGPointMake(0.0, CGRectGetHeight(rect))];
     [bezierPath addLineToPoint:CGPointMake(CGRectGetWidth(rect), CGRectGetHeight(rect))];
-    [[UIColor colorWithWhite:197.0/255.0 alpha:0.75] setStroke];
+    [bottomLineColor setStroke];
     [bezierPath setLineWidth:1.0];
     [bezierPath stroke];
     
@@ -147,6 +153,8 @@
 @property (nonatomic) UIColor *indicatorColor;
 @property (nonatomic) UIColor *tabsViewBackgroundColor;
 @property (nonatomic) UIColor *contentViewBackgroundColor;
+@property (nonatomic) UIColor *topLineColor;
+@property (nonatomic) UIColor *bottomLineColor;
 
 @end
 
@@ -549,6 +557,26 @@
     }
     return _contentViewBackgroundColor;
 }
+-(UIColor *)topLineColor {
+    if(!_topLineColor) {
+        UIColor *color = kTopLineColor;
+        if([self.delegate respondsToSelector:@selector(viewPager:colorForComponent:withDefault:)]) {
+            color = [self.delegate viewPager:self colorForComponent:ViewPagerTopLine withDefault:color];
+        }
+        self.topLineColor = color;
+    }
+    return _topLineColor;
+}
+-(UIColor *)bottomLineColor {
+    if(!_bottomLineColor) {
+        UIColor *color = kBottomLineColor;
+        if([self.delegate respondsToSelector:@selector(viewPager:colorForComponent:withDefault:)]) {
+            color = [self.delegate viewPager:self colorForComponent:ViewPagerBottomLine withDefault:color];
+        }
+        self.bottomLineColor = color;
+    }
+    return _bottomLineColor;
+}
 
 #pragma mark - Public methods
 - (void)reloadData {
@@ -569,6 +597,8 @@
     _indicatorColor = nil;
     _tabsViewBackgroundColor = nil;
     _contentViewBackgroundColor = nil;
+    _topLineColor = nil;
+    _bottomLineColor = nil;
     
     // Call to setup again with the updated data
     [self defaultSetup];
@@ -676,6 +706,8 @@
     UIColor *indicatorColor;
     UIColor *tabsViewBackgroundColor;
     UIColor *contentViewBackgroundColor;
+    UIColor *topLineColor;
+    UIColor *bottomLineColor;
     
     // Get indicatorColor and check if it is different from the current one
     // If it is, update it
@@ -718,6 +750,27 @@
         self.contentViewBackgroundColor = contentViewBackgroundColor;
     }
     
+    topLineColor = [self.delegate viewPager:self colorForComponent:ViewPagerTopLine withDefault:kTopLineColor];
+    
+    if(![self.topLineColor isEqualToColor:topLineColor]) {
+        
+        self.tabView.topLineColor = topLineColor;
+        
+        [self.tabView drawRect];
+        
+        self.topLineColor = topLineColor;
+    }    
+    
+    bottomLineColor = [self.delegate viewPager:self colorForComponent:ViewPagerBottomLine withDefault:kBottomLineColor];
+    
+    if(![self.bottomLineColor isEqualToColor:bottomLineColor]) {
+        
+        self.tabView.bottomLineColor = bottomLineColor;
+        
+        [self.tabView drawRect];
+        
+        self.bottomLineColor = bottomLineColor;
+    }
 }
 
 - (CGFloat)valueForOption:(ViewPagerOption)option {
@@ -748,6 +801,10 @@
             return [self tabsViewBackgroundColor];
         case ViewPagerContent:
             return [self contentViewBackgroundColor];
+        case ViewPagerTopLine:
+            return [self topLineColor];
+        case ViewPageBottomLine:
+            return [self bottomLineColor];
         default:
             return [UIColor clearColor];
     }
